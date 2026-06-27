@@ -31,7 +31,8 @@ function App() {
     else setLoading(true);
     
     try {
-      const url = isManual ? '/api/refresh' : '/api/status';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+      const url = isManual ? `${apiBase}/api/refresh` : `${apiBase}/api/status`;
       const method = isManual ? 'POST' : 'GET';
       const response = await fetch(url, { method });
       if (!response.ok) {
