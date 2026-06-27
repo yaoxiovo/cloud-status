@@ -4,7 +4,7 @@ echo -e "\033[36m[Antigravity] 正在为主人部署云服务状态监视器 (Cl
 # 检查依赖是否已安装完成
 if [ ! -d "node_modules" ]; then
     echo -e "\033[33m[WARN] node_modules 不存在，正在为主人补充安装依赖... 呜喵~\033[0m"
-    npm install
+    npm install --no-bin-links
 fi
 
 # 杀死可能残留的 3000 和 3001 端口进程
