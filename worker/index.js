@@ -172,61 +172,76 @@ async function fetchServiceStatus(service) {
   };
 }
 
-export async function onRequest(context) {
-  if (context.request.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      }
-    });
-  }
-
-  try {
-    const promises = SERVICES_CONFIG.map(service => fetchServiceStatus(service));
-    const results = await Promise.allSettled(promises);
-    
-    const services = results.map((res, index) => {
-      if (res.status === 'fulfilled') {
-        return res.value;
-      } else {
-        const service = SERVICES_CONFIG[index];
-        return {
-          id: service.id,
-          name: service.name,
-          category: service.category,
-          status: 'operational',
-          description: 'Systems Operational (Fallback)',
-          latency: '25ms',
-          uptime: '99.95%',
-          history: generateHistory(0.99),
-          updatedAt: new Date().toISOString()
-        };
-      }
-    });
-
-    const cacheData = {
-      timestamp: new Date().toISOString(),
-      services,
-      isMock: false
+export default {
+  async fetch(request, env, ctx) {
+    // 跨域处理
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     };
 
-    return new Response(JSON.stringify(cacheData), {
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    const url = new URL(request.url);
+    
+    // 只处理 /api/status 和 /api/refresh
+    if (url.pathname === '/api/status' || url.pathname === '/api/refresh') {
+      try {
+        const promises = SERVICES_CONFIG.map(service => fetchServiceStatus(service));
+        const results = await Promise.allSettled(promises);
+        
+        const services = results.map((res, index) => {
+          if (res.status === 'fulfilled') {
+            return res.value;
+          } else {
+            const service = SERVICES_CONFIG[index];
+            return {
+              id: service.id,
+              name: service.name,
+              category: service.category,
+              status: 'operational',
+              description: 'Systems Operational (Fallback)',
+              latency: '25ms',
+              uptime: '99.95%',
+              history: generateHistory(0.99),
+              updatedAt: new Date().toISOString()
+            };
+          }
+        });
+
+        const responseData = {
+          timestamp: new Date().toISOString(),
+          services,
+          isMock: false
+        };
+
+        return new Response(JSON.stringify(responseData), {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            ...corsHeaders
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            ...corsHeaders
+          }
+        });
       }
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+    }
+
+    // 默认返回 404
+    return new Response(JSON.stringify({ error: "Not Found" }), {
+      status: 404,
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
-        "Access-Control-Allow-Origin": "*"
+        ...corsHeaders
       }
     });
   }
-}
+};
