@@ -219,6 +219,47 @@ function App() {
         ))}
       </div>
 
+      {/* Cloudflare 实时流量大盘 */}
+      {data?.analytics && (
+        <section className="analytics-overview">
+          <div className="analytics-card">
+            <div className="analytics-header">
+              <span className="analytics-title">今日访问请求 (24h)</span>
+              <Globe className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div className="analytics-value">{data.analytics.requests.toLocaleString()}</div>
+            <div className="analytics-footer">
+              <span style={{ color: '#10b981', fontWeight: 600 }}>⚡ Live</span>
+              <span className="analytics-sub">基于 Cloudflare 边缘节点</span>
+            </div>
+          </div>
+          
+          <div className="analytics-card alert">
+            <div className="analytics-header">
+              <span className="analytics-title">WAF 威胁拦截 (24h)</span>
+              <Shield className="w-4 h-4 text-rose-400" />
+            </div>
+            <div className="analytics-value" style={{ color: '#fca5a5' }}>{data.analytics.threats.toLocaleString()}</div>
+            <div className="analytics-footer">
+              <span style={{ color: '#ef4444', fontWeight: 600 }}>🛡️ Active WAF</span>
+              <span className="analytics-sub">拦截潜在网络攻击</span>
+            </div>
+          </div>
+
+          <div className="analytics-card">
+            <div className="analytics-header">
+              <span className="analytics-title">数据传输总量 (24h)</span>
+              <Activity className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="analytics-value">{data.analytics.bytes}</div>
+            <div className="analytics-footer">
+              <span style={{ color: '#22d3ee', fontWeight: 600 }}>🌐 Network</span>
+              <span className="analytics-sub">主站安全入站流量</span>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 服务卡片网格 */}
       <main className="status-grid">
         {filteredServices.map(service => {
@@ -269,6 +310,35 @@ function App() {
                   ))}
                 </div>
               </div>
+
+              {/* 部署详情 */}
+              {service.detail && (
+                <div style={{ 
+                  background: 'rgba(255, 255, 255, 0.02)', 
+                  border: '1px solid rgba(255, 255, 255, 0.05)', 
+                  padding: '0.6rem 0.8rem', 
+                  borderRadius: '0.6rem', 
+                  fontSize: '0.72rem', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '0.25rem',
+                  marginTop: '-0.25rem',
+                  marginBottom: '-0.25rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#64748b' }}>部署 ID:</span>
+                    <span style={{ color: '#a7f3d0', fontFamily: 'monospace' }}>{service.detail.deploymentId.substring(0, 12)}...</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#64748b' }}>部署作者:</span>
+                    <span style={{ color: '#94a3b8' }}>{service.detail.author}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#64748b' }}>最后更新:</span>
+                    <span style={{ color: '#cbd5e1' }}>{new Date(service.detail.created).toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
 
               {/* 延迟和正常运行时间 */}
               <div className="card-details">
